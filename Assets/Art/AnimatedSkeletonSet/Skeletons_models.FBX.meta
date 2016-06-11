@@ -1,0 +1,191 @@
+fileFormatVersion: 2
+guid: 7513ef4c587fa4049b76f587feb90bab
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: CATHead
+    100002: CATLArm
+    100004: CATLCalf
+    100006: CATLClavicle
+    100008: CATLFingers1
+    100010: CATLFingers2
+    100012: CATLFoot
+    100014: CATLForearm
+    100016: CATLHand
+    100018: CATLThigh
+    100020: CATLThumb1
+    100022: CATLThumb2
+    100024: CATNeck
+    100026: CATPelvis
+    100028: CATRArm
+    100030: CATRCalf
+    100032: CATRClavicle
+    100034: CATRFingers1
+    100036: CATRFingers2
+    100038: CATRFoot
+    100040: CATRForearm
+    100042: CATRHand
+    100044: CATRigLLegDigit11
+    100046: CATRigLLegDigit12
+    100048: CATRThigh
+    100050: CATRThumb1
+    100052: CATRThumb2
+    100054: CATRToe1
+    100056: CATRToe2
+    100058: CATSpine1
+    100060: CATSpine2
+    100062: CATSpine3
+    100064: Head_slot
+    100066: LBracers_slot
+    100068: LShoulders_slot
+    100070: RBracers_slot
+    100072: RShoulders_slot
+    100074: ShieldBow_Slot
+    100076: SkeletonArcher_001
+    100078: SkeletonArcher_002
+    100080: SkeletonArcher_003
+    100082: //RootNode
+    100084: SkeletonWarrior_000
+    100086: SkeletonWarrior_001
+    100088: SkeletonWarrior_002
+    100090: SkeletonWarrior_003
+    100092: SkeletonWarrior_004
+    100094: SkeletonWarrior_005
+    100096: SkeletonWarrior_006
+    100098: WeaponSlot
+    400000: CATHead
+    400002: CATLArm
+    400004: CATLCalf
+    400006: CATLClavicle
+    400008: CATLFingers1
+    400010: CATLFingers2
+    400012: CATLFoot
+    400014: CATLForearm
+    400016: CATLHand
+    400018: CATLThigh
+    400020: CATLThumb1
+    400022: CATLThumb2
+    400024: CATNeck
+    400026: CATPelvis
+    400028: CATRArm
+    400030: CATRCalf
+    400032: CATRClavicle
+    400034: CATRFingers1
+    400036: CATRFingers2
+    400038: CATRFoot
+    400040: CATRForearm
+    400042: CATRHand
+    400044: CATRigLLegDigit11
+    400046: CATRigLLegDigit12
+    400048: CATRThigh
+    400050: CATRThumb1
+    400052: CATRThumb2
+    400054: CATRToe1
+    400056: CATRToe2
+    400058: CATSpine1
+    400060: CATSpine2
+    400062: CATSpine3
+    400064: Head_slot
+    400066: LBracers_slot
+    400068: LShoulders_slot
+    400070: RBracers_slot
+    400072: RShoulders_slot
+    400074: ShieldBow_Slot
+    400076: SkeletonArcher_001
+    400078: SkeletonArcher_002
+    400080: SkeletonArcher_003
+    400082: //RootNode
+    400084: SkeletonWarrior_000
+    400086: SkeletonWarrior_001
+    400088: SkeletonWarrior_002
+    400090: SkeletonWarrior_003
+    400092: SkeletonWarrior_004
+    400094: SkeletonWarrior_005
+    400096: SkeletonWarrior_006
+    400098: WeaponSlot
+    4300000: SkeletonArcher_001
+    4300002: SkeletonWarrior_001
+    4300004: SkeletonWarrior_003
+    4300006: SkeletonWarrior_005
+    4300008: SkeletonArcher_002
+    4300010: SkeletonArcher_003
+    4300012: SkeletonWarrior_002
+    4300014: SkeletonWarrior_004
+    4300016: SkeletonWarrior_006
+    4300018: SkeletonWarrior_000
+    9500000: //RootNode
+    11100000: //RootNode
+    13700000: SkeletonArcher_001
+    13700002: SkeletonArcher_002
+    13700004: SkeletonArcher_003
+    13700006: SkeletonWarrior_000
+    13700008: SkeletonWarrior_001
+    13700010: SkeletonWarrior_002
+    13700012: SkeletonWarrior_003
+    13700014: SkeletonWarrior_004
+    13700016: SkeletonWarrior_005
+    13700018: SkeletonWarrior_006
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleRotations: 1
+    optimizeGameObjects: 1
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 0.01
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 1
+  humanoidOversampling: 1
+  additionalBone: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
