@@ -179,7 +179,6 @@ public class MonsterController : MonoBehaviour
     {
         if(_state != state)
         {
-            Debug.Log("current: " + _state + " new " + state);
             _state = state;
             switch(state)
             {
