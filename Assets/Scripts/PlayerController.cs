@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Animation))]
@@ -14,7 +15,7 @@ public class PlayerController : MonoBehaviour
         Die,
         Damaged
     }
-
+    [Header("Stats")]
     [SerializeField] float Speed;
     [SerializeField] float RotationSpeed;
     [SerializeField] float RunningSpeed;
@@ -28,10 +29,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] string DieAnimation;
     [SerializeField] string DamagedAnimation;
 
+    [Header("UI")]
+    [SerializeField] Image HealthBar;
+
     Rigidbody _rigidBody;
     Animation _animation;
     PlayerState _state;
-    List<SlimeController> _enemiesInRange;
+    List<MonsterController> _enemiesInRange;
     float _currentHealth;
 
     float _speedMultiplier;
@@ -83,7 +87,7 @@ public class PlayerController : MonoBehaviour
     {
 	    _rigidBody = GetComponent<Rigidbody>();
         _animation = GetComponent<Animation>();
-        _enemiesInRange = new List<SlimeController>();
+        _enemiesInRange = new List<MonsterController>();
         _currentHealth = Health;
 	}
 
@@ -128,14 +132,14 @@ public class PlayerController : MonoBehaviour
     public bool Hit(float damage)
     {
         bool retVal = false;
-       _currentHealth -= damage;
+        _currentHealth -= damage;
         if(_currentHealth <= 0f)
-       {
+        {
             _currentHealth = 0f;
             retVal = true;
             SetState(PlayerState.Die);
         }
-        Debug.Log("Hero Damaged for: " + damage + " resulting " + _currentHealth + " health");
+        HealthBar.fillAmount = _currentHealth / Health;
        return retVal;
     }
 
@@ -148,7 +152,7 @@ public class PlayerController : MonoBehaviour
     {
         if(other.CompareTag("Enemy") && !other.isTrigger)
         {
-            var target = other.GetComponent<SlimeController>();
+            var target = other.GetComponent<MonsterController>();
             if(target != null)
                 _enemiesInRange.Add(target);
         }
@@ -158,7 +162,7 @@ public class PlayerController : MonoBehaviour
     {
         if(other.CompareTag("Enemy") && !other.isTrigger)
         {
-            var target = other.GetComponent<SlimeController>();
+            var target = other.GetComponent<MonsterController>();
             if(target != null)
                 _enemiesInRange.Remove(target);
         }
@@ -182,7 +186,8 @@ public class PlayerController : MonoBehaviour
 
     void AttackEnd()
     {
-        SetState(PlayerState.Idle);
+        if(_state != PlayerState.Die)
+            SetState(PlayerState.Idle);
     }
 
     void SetState(PlayerState state)

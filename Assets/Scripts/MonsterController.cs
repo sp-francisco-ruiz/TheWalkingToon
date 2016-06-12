@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Animation))]
-public class SlimeController : MonoBehaviour 
+public class MonsterController : MonoBehaviour 
 {
-    enum SlimeState
+    enum MonsterState
     {
         Idle,
         Patrol,
@@ -33,15 +34,21 @@ public class SlimeController : MonoBehaviour
     [SerializeField] Transform SpawnPoint;
     [SerializeField] List<Transform> PatrolPoints;
 
+    [Header("UI")]
+    [SerializeField] Image HealthBar;
+    [SerializeField] GameObject UIRoot;
+
     NavMeshAgent _agent;
     Animation _animation;
     Collider _collider;
-    SlimeState _state;
+    MonsterState _state;
     PlayerController _target;
     int _targetPatrolPoint;
     float _health;
     float _timeWaiting;
     float _timeTowait;
+
+    float _lastAttackTime;
 
     public bool IsAlive
     {
@@ -58,42 +65,50 @@ public class SlimeController : MonoBehaviour
         _animation = GetComponent<Animation>();
         _collider = GetComponent<Collider>();
 	    _health = Info.Health;
+        float animSpeedFactor = 1f / _animation[AttackAnimation].length;
+        _animation[AttackAnimation].speed = Info.AttacksPerSecond / animSpeedFactor;
+        UIRoot.SetActive(false);
 	}
 
 	void Update () 
     {
 
-        if(_state == SlimeState.Chase)
+        if(_state == MonsterState.Chase)
         {
             if(_target == null || !_target.IsAlive)
-                SetState(SlimeState.Patrol);
+                SetState(MonsterState.Patrol);
             else if( (transform.position - _target.transform.position).sqrMagnitude <= Info.AttackRange * Info.AttackRange)
-                SetState(SlimeState.Attack);
+                SetState(MonsterState.Attack);
             else
                 _agent.SetDestination(_target.transform.position);
         }
-        else if(_state == SlimeState.Patrol)
+        else if(_state == MonsterState.Patrol)
         {
-            if(_target != null)
-                SetState(SlimeState.Chase);
+            if(_target != null && _target.IsAlive)
+                SetState(MonsterState.Chase);
             else if((transform.position - PatrolPoints[_targetPatrolPoint].position).sqrMagnitude < 0.1f)
-                SetState(SlimeState.Idle);
+                SetState(MonsterState.Idle);
         }
-        else if(_state == SlimeState.Idle)
+        else if(_state == MonsterState.Idle)
         {
             if(_target != null && _target.IsAlive && (transform.position - _target.transform.position).sqrMagnitude <= Info.AttackRange * Info.AttackRange)
-                SetState(SlimeState.Attack);
+                SetState(MonsterState.Attack);
             else if (_target != null && _target.IsAlive)
-                SetState(SlimeState.Chase);
+                SetState(MonsterState.Chase);
             else if((_timeWaiting += Time.deltaTime) > _timeTowait)
-                SetState(SlimeState.Patrol);
+                SetState(MonsterState.Patrol);
         }
-        else if(_state == SlimeState.Attack)
+        else if(_state == MonsterState.Attack)
         {
             if(_target != null)
                 transform.LookAt(_target.transform);
+
+            if(_lastAttackTime == _animation[AttackAnimation].normalizedTime)
+                SetState(MonsterState.Idle);
+            else
+                _lastAttackTime = _animation[AttackAnimation].normalizedTime;
         }
-        else if(_state == SlimeState.Die)
+        else if(_state == MonsterState.Die)
         {
             if((_timeTowait -= Time.deltaTime) <= 0f)
             {
@@ -104,12 +119,13 @@ public class SlimeController : MonoBehaviour
 
     void Respawn()
     {
+        HealthBar.fillAmount = 1f;
         _health = Info.Health;
         transform.position = SpawnPoint.position;
         _agent.enabled = true;
         if(_collider != null)
             _collider.enabled = true;
-        SetState(SlimeState.Idle);
+        SetState(MonsterState.Idle);
     }
 
     void OnAttackDoesDamage()
@@ -120,22 +136,27 @@ public class SlimeController : MonoBehaviour
 
     void OnAttackEnds()
     {
-        if(_state != SlimeState.Die)
-            SetState(SlimeState.Idle);
+        //if(_state != MonsterState.Die)
+        //    SetState(MonsterState.Idle);
     }
 
     public bool Hit(float damage)
     {
         bool retVal = false;
-       _health -= damage;
-       if(_health <= 0f)
-       {
+        _health -= damage;
+        if(_health <= 0f)
+        {
             _health = 0f;
             retVal = true;
-            SetState(SlimeState.Die);
-       }
-       Debug.Log("Slime hit for " + damage + " resulting " + _health + " health");
-       return retVal;
+            SetState(MonsterState.Die);
+        }
+        else
+        {
+            if(!UIRoot.activeInHierarchy)
+                UIRoot.SetActive(true);
+            HealthBar.fillAmount = _health / Info.Health;
+        }
+        return retVal;
     }
 
     void OnTriggerEnter(Collider other)
@@ -154,7 +175,7 @@ public class SlimeController : MonoBehaviour
         }
     }
 
-    void SetState(SlimeState state)
+    void SetState(MonsterState state)
     {
         if(_state != state)
         {
@@ -162,31 +183,33 @@ public class SlimeController : MonoBehaviour
             _state = state;
             switch(state)
             {
-                case SlimeState.Patrol:
+                case MonsterState.Patrol:
                     _agent.Resume();
                     _targetPatrolPoint = Random.Range(0, PatrolPoints.Count);
                     _animation.CrossFade(WalkAnimation);
                     _agent.SetDestination(PatrolPoints[_targetPatrolPoint].position);
                 break;
 
-                case SlimeState.Chase:
+                case MonsterState.Chase:
                     _agent.Resume();
                     _animation.CrossFade(WalkAnimation);
                 break;
 
-                case SlimeState.Attack:
+                case MonsterState.Attack:
+                    _lastAttackTime = -1f;
                     if(_agent.isActiveAndEnabled)
                         _agent.Stop();
                     _animation.CrossFade(AttackAnimation);
                 break;
 
-                case SlimeState.Idle:
+                case MonsterState.Idle:
                     _timeTowait = Random.Range(MinIdleTime, MaxIdleTime);
                     _timeWaiting = 0f;
                     _animation.CrossFade(IdleAnimation);
                 break;
 
-                case SlimeState.Die:
+                case MonsterState.Die:
+                    UIRoot.SetActive(false);
                     _agent.enabled = false;
                     if(_collider != null)
                         _collider.enabled = false;
