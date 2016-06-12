@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     PlayerState _state;
     List<MonsterController> _enemiesInRange;
     float _currentHealth;
+	float _currentAnimationTime;
 
     float _speedMultiplier;
     float SpeedMultiplier
@@ -93,40 +94,43 @@ public class PlayerController : MonoBehaviour
 
 	void Update () 
     {
-        if(CanMove())
-        {
-            if(Input.GetMouseButtonDown(0))
-            {
-                SetState(PlayerState.Attack);
-            }
-            else
-            {
-        	    float hAxis = Input.GetAxis("Horizontal");
-                float vaxis = Input.GetAxis("Vertical");
+		if (CanMove ()) {
+			if (Input.GetMouseButtonDown (0)) {
+				SetState (PlayerState.Attack);
+			} else {
+				float hAxis = Input.GetAxis ("Horizontal");
+				float vaxis = Input.GetAxis ("Vertical");
 
-                SpeedMultiplier = vaxis < -0.1f ? -0.5f : 1f;
-                Running = Input.GetKey(KeyCode.LeftShift);
+				SpeedMultiplier = vaxis < -0.1f ? -0.5f : 1f;
+				Running = Input.GetKey (KeyCode.LeftShift);
 
-                var displacement = transform.forward * Mathf.Abs(vaxis) * Time.deltaTime * Speed * SpeedMultiplier;
-                var rotation = new Vector3(0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs(SpeedMultiplier), 0f);
+				var displacement = transform.forward * Mathf.Abs (vaxis) * Time.deltaTime * Speed * SpeedMultiplier;
+				var rotation = new Vector3 (0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs (SpeedMultiplier), 0f);
 
-                if(hAxis < -0.1f || hAxis > 0.1f)
-                    transform.Rotate(rotation); 
+				if (hAxis < -0.1f || hAxis > 0.1f)
+					transform.Rotate (rotation); 
 
-                if(vaxis < -0.1f || vaxis > 0.1f)
-                {
-                    _rigidBody.MovePosition(_rigidBody.position + displacement);
-                    SetState(PlayerState.Walk);
-                }
-                else
-                {
-                    SetState(PlayerState.Idle);
-                }
-            }
+				if (vaxis < -0.1f || vaxis > 0.1f) {
+					_rigidBody.MovePosition (_rigidBody.position + displacement);
+					SetState (PlayerState.Walk);
+				} else {
+					SetState (PlayerState.Idle);
+				}
+			}
 
-            _rigidBody.velocity = Vector3.zero;
-            _rigidBody.angularVelocity = Vector3.zero;
-        }
+			_rigidBody.velocity = Vector3.zero;
+			_rigidBody.angularVelocity = Vector3.zero;
+		}
+		else if (_state == PlayerState.Attack)
+		{
+			if (_currentAnimationTime == _animation [AttackAnimations [0]].normalizedTime)
+			{
+				if (_state != PlayerState.Die)
+					SetState (PlayerState.Idle);
+			}
+			else
+				_currentAnimationTime = _animation [AttackAnimations [0]].normalizedTime;	
+		}
 	}
 
     public bool Hit(float damage)
@@ -186,8 +190,8 @@ public class PlayerController : MonoBehaviour
 
     void AttackEnd()
     {
-        if(_state != PlayerState.Die)
-            SetState(PlayerState.Idle);
+//		if(_state != PlayerState.Die)
+//            SetState(PlayerState.Idle);
     }
 
     void SetState(PlayerState state)
@@ -203,7 +207,8 @@ public class PlayerController : MonoBehaviour
                 case PlayerState.Idle:
                     _animation.CrossFade(IdleAnimation);
                 break;
-                case PlayerState.Attack:
+				case PlayerState.Attack:
+					_currentAnimationTime = -1f;
                     _animation.CrossFade(AttackAnimations[Random.Range(0, AttackAnimations.Count)]);
                 break;
                 case PlayerState.Die:
