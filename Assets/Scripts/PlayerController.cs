@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float Speed;
     [SerializeField] float RotationSpeed;
     [SerializeField] float RunningSpeed;
+    [SerializeField] float AttackPower;
+    [SerializeField] float Health;
 
     [Header("Animations")]
     [SerializeField] string IdleAnimation;
@@ -29,6 +31,8 @@ public class PlayerController : MonoBehaviour
     Rigidbody _rigidBody;
     Animation _animation;
     PlayerState _state;
+    List<SlimeController> _enemiesInRange;
+    float _currentHealth;
 
     float _speedMultiplier;
     float SpeedMultiplier
@@ -67,10 +71,20 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    public bool IsAlive
+    {
+        get
+        {
+            return _currentHealth > 0f;
+        }
+    }
+
 	void Awake () 
     {
 	    _rigidBody = GetComponent<Rigidbody>();
         _animation = GetComponent<Animation>();
+        _enemiesInRange = new List<SlimeController>();
+        _currentHealth = Health;
 	}
 
 	void Update () 
@@ -86,26 +100,23 @@ public class PlayerController : MonoBehaviour
         	    float hAxis = Input.GetAxis("Horizontal");
                 float vaxis = Input.GetAxis("Vertical");
 
-                SpeedMultiplier = vaxis < 0.1f ? -0.5f : 1f;
+                SpeedMultiplier = vaxis < -0.1f ? -0.5f : 1f;
                 Running = Input.GetKey(KeyCode.LeftShift);
 
-                if(vaxis > 0.1f || vaxis < -0.1f)
+                var displacement = transform.forward * Mathf.Abs(vaxis) * Time.deltaTime * Speed * SpeedMultiplier;
+                var rotation = new Vector3(0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs(SpeedMultiplier), 0f);
+
+                if(hAxis < -0.1f || hAxis > 0.1f)
+                    transform.Rotate(rotation); 
+
+                if(vaxis < -0.1f || vaxis > 0.1f)
                 {
-                    var displacement = transform.forward * Mathf.Abs(vaxis) * Time.deltaTime * Speed * SpeedMultiplier;
-
                     _rigidBody.MovePosition(_rigidBody.position + displacement);
-
                     SetState(PlayerState.Walk);
                 }
                 else
                 {
                     SetState(PlayerState.Idle);
-                }
-
-                if(hAxis < -0.1f || hAxis > 0.1f)
-                {
-                    var rotation = new Vector3(0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs(SpeedMultiplier), 0f);
-                    transform.Rotate(rotation); 
                 }
             }
 
@@ -114,14 +125,59 @@ public class PlayerController : MonoBehaviour
         }
 	}
 
+    public bool Hit(float damage)
+    {
+        bool retVal = false;
+       _currentHealth -= damage;
+        if(_currentHealth <= 0f)
+       {
+            _currentHealth = 0f;
+            retVal = true;
+            SetState(PlayerState.Die);
+        }
+        Debug.Log("Hero Damaged for: " + damage + " resulting " + _currentHealth + " health");
+       return retVal;
+    }
+
     bool CanMove()
     {
         return _state == PlayerState.Walk || _state == PlayerState.Idle;
     }
 
+    void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Enemy") && !other.isTrigger)
+        {
+            var target = other.GetComponent<SlimeController>();
+            if(target != null)
+                _enemiesInRange.Add(target);
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if(other.CompareTag("Enemy") && !other.isTrigger)
+        {
+            var target = other.GetComponent<SlimeController>();
+            if(target != null)
+                _enemiesInRange.Remove(target);
+        }
+    }
+
     void AttackDamage()
     {
-
+        if(_enemiesInRange.Count > 0)
+        {
+            var closestEnemy = _enemiesInRange[0];
+            for(int i = 0; i < _enemiesInRange.Count; ++i)
+            {
+                var enemy = _enemiesInRange[i];
+                if((enemy.transform.position - transform.position).sqrMagnitude < (closestEnemy.transform.position - transform.position).sqrMagnitude)
+                    closestEnemy = enemy;
+            }
+            if(closestEnemy.Hit(AttackPower))
+                _enemiesInRange.Remove(closestEnemy);
+        }
     }
 
     void AttackEnd()
@@ -145,7 +201,9 @@ public class PlayerController : MonoBehaviour
                 case PlayerState.Attack:
                     _animation.CrossFade(AttackAnimations[Random.Range(0, AttackAnimations.Count)]);
                 break;
-
+                case PlayerState.Die:
+                    _animation.CrossFade(DieAnimation);
+                break;
             }
         }
     }
