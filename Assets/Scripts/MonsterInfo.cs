@@ -9,4 +9,5 @@ public class MonsterInfo
     public float Damage;
     public float AttacksPerSecond;
     public float AttackRange;
+    public float DropChance;
 }

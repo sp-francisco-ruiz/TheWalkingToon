@@ -31,13 +31,19 @@ public class PlayerController : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] Image HealthBar;
+    [SerializeField] Text MonsterCountLabel;
+
+    [Header("Particles")]
+    [SerializeField] GameObject HealingEffect;
 
     Rigidbody _rigidBody;
     Animation _animation;
     PlayerState _state;
     List<MonsterController> _enemiesInRange;
+    Coroutine _healCoroutine;
     float _currentHealth;
 	float _currentAnimationTime;
+    int _enemiesKilled;
 
     float _speedMultiplier;
     float SpeedMultiplier
@@ -90,6 +96,8 @@ public class PlayerController : MonoBehaviour
         _animation = GetComponent<Animation>();
         _enemiesInRange = new List<MonsterController>();
         _currentHealth = Health;
+        HealingEffect.SetActive(false);
+        _enemiesKilled = 0;
 	}
 
 	void Update () 
@@ -160,6 +168,17 @@ public class PlayerController : MonoBehaviour
             if(target != null)
                 _enemiesInRange.Add(target);
         }
+        else if(other.CompareTag("Pickup"))
+        {
+            Destroy(other.gameObject, 0.2f);
+            var pickup = other.GetComponent<HealPickup>();
+            if(pickup != null)
+            {
+                if(_healCoroutine != null)
+                    StopCoroutine(_healCoroutine);
+                _healCoroutine = StartCoroutine(HealOverTime(pickup.HealPerSecond, pickup.Duration));
+            }
+        }
     }
 
     void OnTriggerExit(Collider other)
@@ -170,6 +189,22 @@ public class PlayerController : MonoBehaviour
             if(target != null)
                 _enemiesInRange.Remove(target);
         }
+    }
+
+    IEnumerator HealOverTime(float hps, float duration)
+    {
+        HealingEffect.SetActive(true);
+        float remainingtime = duration;
+        do
+        {
+            _currentHealth += hps * Time.deltaTime;
+            _currentHealth = Mathf.Min(Health, _currentHealth);
+            remainingtime -= Time.deltaTime;
+            HealthBar.fillAmount = _currentHealth / Health;
+            yield return null;
+        }
+        while(remainingtime > 0f && _state != PlayerState.Die);
+        HealingEffect.SetActive(false);
     }
 
     void AttackDamage()
@@ -184,7 +219,11 @@ public class PlayerController : MonoBehaviour
                     closestEnemy = enemy;
             }
             if(closestEnemy.Hit(AttackPower))
+            {
                 _enemiesInRange.Remove(closestEnemy);
+                ++_enemiesKilled;
+                MonsterCountLabel.text = "Monsters killed: " + _enemiesKilled;
+            }
         }
     }
 

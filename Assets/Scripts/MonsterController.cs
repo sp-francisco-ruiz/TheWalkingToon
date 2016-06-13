@@ -208,6 +208,11 @@ public class MonsterController : MonoBehaviour
                 break;
 
                 case MonsterState.Die:
+                    if(Random.Range(0f, 100f) < Info.DropChance)
+                    {
+                        var go = Instantiate(Resources.Load("PowerUpHeal") as GameObject);
+                        go.transform.position = new Vector3(transform.position.x, go.transform.position.y, transform.position.z);
+                    }
                     UIRoot.SetActive(false);
                     _agent.enabled = false;
                     if(_collider != null)
