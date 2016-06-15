@@ -11,16 +11,21 @@ public class PlayerController : MonoBehaviour
     {
         Idle,
         Walk,
+        Chase,
         Attack,
         Die,
         Damaged
     }
+
+    [SerializeField] GameObject GroundGameObject;
+
     [Header("Stats")]
     [SerializeField] float Speed;
     [SerializeField] float RotationSpeed;
     [SerializeField] float RunningSpeed;
     [SerializeField] float AttackPower;
     [SerializeField] float Health;
+    [SerializeField] float AttackRange;
 
     [Header("Animations")]
     [SerializeField] string IdleAnimation;
@@ -44,6 +49,8 @@ public class PlayerController : MonoBehaviour
     float _currentHealth;
 	float _currentAnimationTime;
     int _enemiesKilled;
+
+    MonsterController _target;
 
     float _speedMultiplier;
     float SpeedMultiplier
@@ -90,22 +97,63 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    Vector3 _targetPos;
+    void OnClickedAsRightButtonEvent(Game.Managers.ClickedAsRightButtonEvent e)
+    {
+        if(e.TouchedObject == GroundGameObject)
+        {
+            if(CanMove())
+            {
+                SetState(PlayerState.Walk);
+                _targetPos = e.TouchedPosition;
+                _agent.SetDestination(_targetPos);
+            }
+        }
+        else
+        {
+
+        }
+    }
+    NavMeshAgent _agent;
 	void Awake () 
     {
 	    _rigidBody = GetComponent<Rigidbody>();
         _animation = GetComponent<Animation>();
+        _agent = GetComponent<NavMeshAgent>();
         _enemiesInRange = new List<MonsterController>();
         _currentHealth = Health;
         HealingEffect.SetActive(false);
         _enemiesKilled = 0;
+
+        _agent.speed = Speed;
+
+        Game.Managers.EventDispatcher.Instance.AddListener<Game.Managers.ClickedAsRightButtonEvent>(OnClickedAsRightButtonEvent);
 	}
+
 
 	void Update () 
     {
-		if (CanMove ()) {
-			if (Input.GetMouseButtonDown (0)) {
+        Game.Managers.InputManager.Instance.Update();
+        if(_state == PlayerState.Chase)
+        {
+            if(_target == null || !_target.IsAlive)
+                SetState(PlayerState.Idle);
+            else if( (transform.position - _target.transform.position).sqrMagnitude <= AttackRange * AttackRange)
+                SetState(PlayerState.Attack);
+            else
+                _agent.SetDestination(_target.transform.position);
+        }
+        else if (/*CanMove ()*/_state == PlayerState.Walk)
+        {
+            if((_targetPos - transform.position).sqrMagnitude < 0.5f)
+                SetState(PlayerState.Idle);
+            return;
+			if (Input.GetMouseButtonDown (0)) 
+            {
 				SetState (PlayerState.Attack);
-			} else {
+			} 
+            else 
+            {
 				float hAxis = Input.GetAxis ("Horizontal");
 				float vaxis = Input.GetAxis ("Vertical");
 
@@ -118,10 +166,13 @@ public class PlayerController : MonoBehaviour
 				if (hAxis < -0.1f || hAxis > 0.1f)
 					transform.Rotate (rotation); 
 
-				if (vaxis < -0.1f || vaxis > 0.1f) {
+				if (vaxis < -0.1f || vaxis > 0.1f) 
+                {
 					_rigidBody.MovePosition (_rigidBody.position + displacement);
 					SetState (PlayerState.Walk);
-				} else {
+				} 
+                else
+                {
 					SetState (PlayerState.Idle);
 				}
 			}
