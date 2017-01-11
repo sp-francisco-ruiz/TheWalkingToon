@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
 
         set
         {
-            if(_speedMultiplier != value)
+            if(System.Math.Abs(_speedMultiplier - value) > float.Epsilon)
             {
                 _speedMultiplier = value;
                 _animation[WalkAnimation].speed = SpeedMultiplier;
@@ -100,30 +100,75 @@ public class PlayerController : MonoBehaviour
         _enemiesKilled = 0;
 	}
 
+    bool _rotating = false;
+    Vector3 _lastMousePos = Vector3.zero;
 	void Update () 
     {
-		if (CanMove ()) {
-			if (Input.GetMouseButtonDown (0)) {
-				SetState (PlayerState.Attack);
-			} else {
+        if(Input.GetMouseButtonDown(1))
+        {
+            _rotating = true;
+            _lastMousePos = Input.mousePosition;
+        }
+        else if(Input.GetMouseButtonUp(1))
+        {
+            _rotating = false;
+        }
+        if (CanMove ()) 
+        {
+            if (Input.GetMouseButtonDown (0)) 
+            {
+                SetState (PlayerState.Attack);
+            } 
+            else 
+            {
 				float hAxis = Input.GetAxis ("Horizontal");
-				float vaxis = Input.GetAxis ("Vertical");
+                float vAxis = Input.GetAxis ("Vertical");
 
-				SpeedMultiplier = vaxis < -0.1f ? -0.5f : 1f;
+				SpeedMultiplier = vAxis < -0.1f ? -0.5f : 1f;
 				Running = Input.GetKey (KeyCode.LeftShift);
 
-				var displacement = transform.forward * Mathf.Abs (vaxis) * Time.deltaTime * Speed * SpeedMultiplier;
-				var rotation = new Vector3 (0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs (SpeedMultiplier), 0f);
+                var displacement = Vector3.zero;
+                var rotation = Vector3.zero;
+
+                if(vAxis < -0.1f || vAxis > 0.1f)
+                {
+                    displacement += transform.forward * Mathf.Abs (vAxis) * Time.deltaTime * Speed * SpeedMultiplier;
+                }
+
+                if(_rotating)
+                {
+                    if (hAxis < -0.1f || hAxis > 0.1f)
+                    {
+                        var localDisplacement = transform.right * hAxis * Time.deltaTime * Speed * SpeedMultiplier;
+                        if(SpeedMultiplier < 0.0f)
+                        {
+                            localDisplacement *= -1.0f;
+                        }
+                        displacement += localDisplacement;
+                    }
+                    float amount = Input.mousePosition.x - _lastMousePos.x;
+                    hAxis = Mathf.Min(Mathf.Max(-1.5f, amount), 1.5f);
+                    _lastMousePos = Input.mousePosition;
+                }
 
 				if (hAxis < -0.1f || hAxis > 0.1f)
-					transform.Rotate (rotation); 
+                {
+                    rotation += new Vector3 (0f, hAxis * Time.deltaTime * RotationSpeed * Mathf.Abs (SpeedMultiplier), 0f);
+                }
 
-				if (vaxis < -0.1f || vaxis > 0.1f) {
+                if(rotation.sqrMagnitude > 0.0f)
+                {
+                    transform.Rotate (rotation); 
+                }
+                if (displacement.sqrMagnitude > 0.0f) 
+                {
 					_rigidBody.MovePosition (_rigidBody.position + displacement);
 					SetState (PlayerState.Walk);
-				} else {
-					SetState (PlayerState.Idle);
-				}
+				} 
+                else 
+                {
+                    SetState (PlayerState.Idle);
+                }
 			}
 
 			_rigidBody.velocity = Vector3.zero;
@@ -131,13 +176,13 @@ public class PlayerController : MonoBehaviour
 		}
 		else if (_state == PlayerState.Attack)
 		{
-			if (_currentAnimationTime == _animation [AttackAnimations [0]].normalizedTime)
-			{
-				if (_state != PlayerState.Die)
-					SetState (PlayerState.Idle);
-			}
-			else
-				_currentAnimationTime = _animation [AttackAnimations [0]].normalizedTime;	
+            if(System.Math.Abs(_currentAnimationTime - _animation[AttackAnimations[0]].normalizedTime) < float.Epsilon)
+            {
+                if(_state != PlayerState.Die)
+                    SetState(PlayerState.Idle);
+            }
+            else
+                _currentAnimationTime = _animation[AttackAnimations[0]].normalizedTime;	
 		}
 	}
 
